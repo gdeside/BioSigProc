@@ -6,7 +6,7 @@ This module provides functions for plotting PPG signals, offering options
 to customize the appearance of the plot and save it to a file.
 
 Functions:
-- plot_PPG_signal: Plot PPG signal.
+- plot_ppg_signal: Plot PPG signal.
 
 """
 
@@ -14,40 +14,56 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-def plot_ppg_signal(signal, fs, xlim=None, title='PPG Signal', show_fig=True, file_path=None):
+def plot_ppg_signal(signal, fs=None, xlim=None, ylim=None, title=None, show_fig=True, file_path=None, figsize=(20, 8), color='blue'):
     """
     Plot PPG signal.
 
     Parameters:
-    - signal: PPG signal.
-    - fs: Sampling frequency.
-    - xlim: (Optional) x-axis limits for the plot (default: None).
-    - title: Title of the plot (default: 'PPG Signal').
-    - show_fig: Whether to display the figure (default: True).
-    - file_path: File path to save the figure (default: None).
+        - signal (numpy.ndarray): The PPG signal data.
+        - fs (float, optional): Sampling frequency in Hz (default: None).
+        - xlim (tuple, optional): x-axis limits for the plot (default: None).
+        - ylim (tuple, optional): y-axis limits for the plot (default: None).
+        - title (str, optional): Title of the plot (default: None).
+        - show_fig (bool, optional): Whether to display the figure (default: True).
+        - file_path (str, optional): File path to save the figure (default: None).
+        - figsize (tuple, optional): Figure size (default: (20, 8)).
+        - color (str, optional): Matplotlib line color (default: 'blue').
 
     Returns:
-    None
+        None
     """
 
-    fig, ax = plt.subplots(figsize=(12, 8))
+    if not isinstance(signal, np.ndarray):
+        raise TypeError("`signal` must be a numpy array.")
 
-    time = np.arange(0, len(signal) * 1 / fs, 1 / fs)
+    fig, ax = plt.subplots(figsize=figsize)
+
+    if fs is not None:
+        time = np.arange(0, len(signal) * 1 / fs, 1 / fs)
+        ax.set_xlabel('Time [s]')
+    else:
+        time = np.arange(0, len(signal))
 
     if xlim:
         ax.set_xlim(*xlim)
 
-    ax.plot(time, signal)
+    if ylim:
+        ax.set_ylim(*ylim)
 
-    ax.set_xlabel('Time [s]')
+    ax.plot(time, signal, color=color)
+
     ax.set_ylabel('PPG Signal')
-    ax.set_title(title)
+    if title:
+        ax.set_title(title)
 
     if file_path:
-        file_path = Path(file_path)
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        fig.savefig(file_path)
-        print(f"Figure saved to {file_path}")
+        try:
+            file_path = Path(file_path)
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(file_path)
+            print(f"Figure saved to {file_path}")
+        except Exception as e:
+            print(f"Error saving figure: {e}")
 
     if show_fig:
         plt.show()
