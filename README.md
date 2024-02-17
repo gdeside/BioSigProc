@@ -24,6 +24,11 @@ BioSigProc/
 │   │   ├── emg_processing.py
 │   │   ├── emg_feature_extraction.py
 │   │   └── emg_visualization.py
+│   ├── ppg/
+│   │   ├── __init__.py
+│   │   ├── ppg_processing.py
+│   │   ├── ppg_feature_extraction.py
+│   │   └── ppg_visualization.py
 │   ├── common_utils.py
 │   ├── common_visualization.py  # Added
 │
