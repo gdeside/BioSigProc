@@ -5,7 +5,7 @@ Module for PPG signal processing.
 This module provides functions for processing PPG signals.
 
 Functions:
--
+- load_random_ppg_signal
 -
 """
 import os
