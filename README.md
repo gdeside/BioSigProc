@@ -36,6 +36,7 @@ BioSigProc/
 │   ├── test_eeg.py
 │   ├── test_ecg.py
 │   ├── test_emg.py
+│   ├── test_ppg.py
 │   └── test_common_utils.py
 │
 ├── README.md
