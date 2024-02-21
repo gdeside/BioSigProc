@@ -1,3 +1,4 @@
+![BioSigProc Logo](logo.png)
 # BioSigProc
 
 This repository contains the BioSigProc package, a Python library for processing and analyzing various biomedical signals, including EEG, ECG, and EMG. The package offers tools for signal processing, feature extraction, and visualization tailored for different signal types.
