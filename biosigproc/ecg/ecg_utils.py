@@ -32,7 +32,8 @@ def pan_tompkin(ecg, fs, show_fig=False):
     ecg -= np.mean(ecg)
 
     if show_fig:
-        fig, axs = plt.subplots(6)
+        fig, axs = plt.subplots(7)
+        axs[0].plot(ecg)
 
     ########################## Band Pass ########################################
     if fs == 200:
@@ -107,6 +108,20 @@ def pan_tompkin(ecg, fs, show_fig=False):
     if show_fig:
         axs[5].plot(ecg)
         axs[5].plot(pks, ecg[pks], "x")
+
+    ############################## Correction peaks ########################################
+
+    for i, pk in enumerate(pks):
+        print(pk)
+        idx = [max(0, pk - 20), min(pk + 20, len(ecg))]
+        print(idx)
+        new_pk = np.argmax(ecg[idx[0]:idx[1]])+idx[0]
+        print(pk, new_pk)
+        pks[i] = new_pk
+
+    if show_fig:
+        axs[6].plot(ecg)
+        axs[6].plot(pks, ecg[pks], "x")
 
     if show_fig:
         plt.tight_layout()
