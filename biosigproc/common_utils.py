@@ -156,3 +156,81 @@ def wavelet_signal(signal, wavelet='db4', level=4, fs=None):
         return None
 
     return coeffs
+
+
+def reconstruct_signal_from_coefficients(coeffs, wavelet="db4"):
+    """
+    Reconstructs the signal from coefficients using inverse wavelet transform.
+
+    This function takes a list of wavelet coefficients at each level and reconstructs the signal using the inverse wavelet transform.
+
+    Parameters:
+    - coeffs (list): List of wavelet coefficients at each level.
+    - wavelet (str): Name of the wavelet function to use (default: 'db4').
+
+    Returns:
+    - numpy.ndarray: Reconstructed signal.
+    """
+    # Reconstruct the signal using inverse wavelet transform
+    reconstructed_signal = pywt.waverec(coeffs, wavelet)
+
+    return reconstructed_signal
+
+
+def reconstruct_signal(coeffs, wavelet="db4", levels_to_remove=[]):
+    """
+    Reconstructs the signal from wavelet coefficients using inverse wavelet transform.
+
+    This function takes a list of wavelet coefficients at each level and reconstructs the signal using the inverse
+    wavelet transform. Optionally, it allows removing specific coefficient levels before reconstruction.
+
+    Parameters:
+    - coeffs (list): List of wavelet coefficients at each level.
+    - wavelet (str): Name of the wavelet function to use (default: 'db4').
+    - levels_to_remove (list): List of coefficient levels to remove before reconstruction (default: []).
+
+    Returns:
+    - numpy.ndarray: Reconstructed signal.
+    """
+    # Reconstruct the signal using inverse wavelet transform
+    coeffs_new = []
+    for level_index, coeff_level in enumerate(coeffs):
+        if level_index in levels_to_remove:
+            coeffs_new.append(np.zeros_like(coeff_level))
+        else:
+            coeffs_new.append(coeff_level)
+    reconstructed_signal = pywt.waverec(coeffs_new, wavelet)
+
+    return reconstructed_signal
+
+
+def reconstruct_coefficients_independently(coeffs, wavelet="db4", signal_size=1000):
+    """
+    Reconstructs the signal independently for each coefficient level using inverse wavelet transform.
+
+    Parameters:
+    - coeffs (list): List of wavelet coefficients at each level.
+    - wavelet (str): Wavelet function to use (default: 'db4').
+    - signal_size (int): Size of the original signal (default: 1000).
+
+    Returns:
+    - list: List of reconstructed signals for each coefficient level.
+    """
+    # Initialize an array to store the reconstructed signals
+    reconstructed_signals = np.zeros((len(coeffs), signal_size))
+
+    # Iterate over each level of coefficients
+    for level_index, coeff_level in enumerate(coeffs):
+        # Initialize an array to store the reconstruction coefficients for the current level
+        coeffs_reconstruction = [np.zeros_like(c) for c in coeffs]
+
+        # Copy the coefficients for the current level
+        coeffs_reconstruction[level_index] = coeff_level
+
+        # Reconstruct the signal for the current level
+        reconstructed_signal = pywt.waverec(coeffs_reconstruction, wavelet)
+
+        # Update the reconstructed signals array
+        reconstructed_signals[level_index, :] = reconstructed_signal
+
+    return reconstructed_signals
