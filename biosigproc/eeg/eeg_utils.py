@@ -11,6 +11,7 @@ Functions:
 import os
 import numpy as np
 import random
+from scipy.signal import welch
 
 
 def reject_electrodes(eeg_signals, electrodes, labels=None):
@@ -90,3 +91,82 @@ def average_eeg_signals(eeg_signals, axis=0):
     average_eeg = np.mean(eeg_signals, axis=axis)
 
     return average_eeg
+
+
+def extract_eeg_features(eeg_signals, fs, noverlap=0, features_to_extract=None):
+    """
+    Extracts features from EEG signals within specified frequency bands.
+
+    Args:
+        eeg_signals (np.ndarray): Input EEG signals (n_samples, n_channels).
+        fs (float): Sampling frequency of the EEG signals.
+        noverlap (int, optional): The number of overlapping samples between segments. Defaults to 0.
+        features_to_extract (list, optional): A list of feature names to extract.
+            Defaults to None (all features will be extracted).
+
+    Returns:
+        np.ndarray: Feature matrix (n_samples, n_features).
+    """
+
+    frequency_bands = [
+        ("Delta", (0.5, 4)),
+        ("Theta", (4, 8)),
+        ("Alpha", (8, 13)),
+        ("Low Beta", (13, 21)),
+        ("High Beta", (21, 28)),
+        ("Beta", (13, 28)),  # Combining Low Beta and High Beta
+        ("Low Gamma", (28, 38)),
+        ("Gamma", (28, 48.5)),  # Combining Low Gamma and High Gamma
+    ]
+
+    # List of implemented features
+    feature_list = [
+        ("mean", np.nanmean),
+        ("median", np.nanmedian),
+        ("std", np.nanstd),
+        ("max-min", lambda x: np.ptp(x)),
+        ("end-start", lambda x: x[-1] - x[0]),
+        ("abs_slope", lambda x: np.abs(np.gradient(x)).mean()),
+        ("percentile_diff", lambda x: np.percentile(x, 95) - np.percentile(x, 5)),
+        ("num_greater_than_previous", lambda x: np.sum(np.diff(x) > 0)),
+        ("binned_entropy", _binned_entropy),
+        ("number_mean_crossing", _number_mean_crossing),
+        ("ratio_beyond_r_sigma", _ratio_beyond_r_sigma),
+        ("rvalue", _rvalue),
+        ("intercept", _intercept),
+        ("stderr", _stderr),
+    ]
+
+    # Define the parameters for the Welch method
+    nperseg = int(fs)  # Window size (in case of 1 second)
+
+    # Extract features
+    feature_matrix = []
+    for eeg_signal in eeg_signals:
+        feature_vector = []
+        for channel_data in eeg_signal:
+            channel_features = []
+
+            # Compute power spectral density (PSD)
+            f, psd = welch(channel_data, fs=fs, nperseg=nperseg, noverlap=noverlap)
+
+            for band_name, freq_band in frequency_bands:
+                # Extract PSD in the band
+                freq_band_psd = psd[(f >= freq_band[0]) & (f <= freq_band[1])]
+
+                # Calculate features based on selected features
+                selected_features = feature_list if features_to_extract is None else [
+                    f for f in feature_list if f[0] in features_to_extract
+                ]
+                for feature_name, feature_function in selected_features:
+                    feature_value = feature_function(freq_band_psd)
+                    channel_features.append(feature_value)
+
+                    # Check and handle NaN values (optional)
+                    # if np.isnan(feature_value):  # Uncomment to handle NaN values
+                    #     print(f"Warning: Feature value is NaN for feature '{feature_name}'")
+
+            feature_vector += channel_features
+        feature_matrix.append(feature_vector)
+
+    return np.stack(feature_matrix)

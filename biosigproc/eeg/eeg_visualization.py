@@ -104,16 +104,16 @@ def plot_average_eeg_signals(eeg_signals, fs=None, plot_confidence_interval=Fals
         print("Warning: Input contains NaN values. Detrending might be ineffective.")
 
         # Perform averaging along the specified axis
-    average_eeg = np.mean(eeg_signals, axis=1)
-    std_eeg = np.std(eeg_signals, axis=1)
+    average_eeg = np.mean(eeg_signals, axis=0)
+    std_eeg = np.std(eeg_signals, axis=0)
     fig, ax = plt.subplots()
     # Plot the average EEG and confidence interval with a legend
 
-    ax.plot(average_eeg, color="blue", label='Average EEG')
+    ax.plot(time, average_eeg, color="blue", label='Average EEG')
     if plot_confidence_interval:
         color = 'red'  # Set a consistent color for confidence interval
-        ax.plot(average_eeg + 1.96 * std_eeg, color=color, linestyle='--', label='Confidence Interval')
-        ax.plot(average_eeg - 1.96 * std_eeg, color=color, linestyle='--')
+        ax.plot(time, average_eeg + 1.96 * std_eeg, color=color, linestyle='--', label='Confidence Interval')
+        ax.plot(time, average_eeg - 1.96 * std_eeg, color=color, linestyle='--')
 
     # Add labels and legend
     ax.set_xlabel('Time (s)' if fs else 'Samples')
