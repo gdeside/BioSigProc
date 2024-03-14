@@ -13,6 +13,7 @@ Functions:
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
+from scipy.signal import freqz
 
 
 def plot_signal(signal, fs=None, xlim=None, ylim=None, title=None, show_fig=True, file_path=None, figsize=(20, 8),
@@ -106,7 +107,7 @@ def plot_fft(signal, fs, xlim=None, ylim=None, title=None, show_fig=True, file_p
     fig, ax = plt.subplots(figsize=figsize)
 
     # Plot the Fourier Transform
-    ax.plot(frequency_axis[len(frequency_axis) // 2:], np.abs(signal_fft[len(frequency_axis) // 2:]),color=color)
+    ax.plot(frequency_axis[len(frequency_axis) // 2:], np.abs(signal_fft[len(frequency_axis) // 2:]), color=color)
 
     # Set x-axis limits if provided
     if xlim:
@@ -142,4 +143,94 @@ def plot_fft(signal, fs, xlim=None, ylim=None, title=None, show_fig=True, file_p
     return
 
 
+def plot_signals_length(signals, fs, title=None, show_fig=True, save_fig=None):
+    """
+    Plots the distribution of signal lengths in seconds.
 
+    Args:
+        signals (list): A list of EEG signals (each element is a 1D array).
+        fs (float): Sampling frequency of the signals.
+        title (str, optional): Title for the plot. Defaults to None.
+        show_fig (bool, optional): Whether to display the plot on screen. Defaults to True.
+        save_fig (str, optional): File path to save the plot. Defaults to None.
+    """
+
+    plt.figure(figsize=(12, 8))  # Set figure size
+
+    # Calculate signal lengths in seconds
+    signal_lengths = [len(signal) / fs for signal in signals]
+
+    # Plot the histogram
+    plt.hist(signal_lengths)
+    plt.xlabel("Time (seconds)")
+    plt.ylabel("Number of signals")
+
+    if title:
+        plt.title(title)
+
+    # Save the figure if a file path is provided
+    if save_fig:
+        # Ensure directory exists before saving
+        save_dir = Path(save_fig).parent
+        if not save_dir.exists():
+            save_dir.mkdir(parents=True)
+        plt.savefig(save_fig)
+
+    # Display the plot if requested
+    if show_fig:
+        plt.show()
+
+    # Close the figure to avoid memory leaks
+    plt.close()
+
+
+def plot_frequency_response(b, a, fs, show_fig=True, save_fig=None):
+    """
+    Plots the magnitude and phase response of a filter.
+
+    Args:
+        b (np.ndarray): Numerator coefficients of the filter.
+        a (np.ndarray): Denominator coefficients of the filter.
+        fs (float): Sampling frequency.
+        show_fig (bool, optional): Whether to display the plot on screen. Defaults to True.
+        save_fig (str, optional): File path to save the plot. Defaults to None.
+    """
+
+    plt.figure(figsize=(8, 6))  # Set figure size
+
+    # Calculate frequency response using SciPy
+    freq, H = freqz(b, a, fs=fs)
+
+    # Plot magnitude (dB)
+    plt.subplot(2, 1, 1)
+    plt.semilogx(freq, 20 * np.log10(abs(H)), label="Magnitude (dB)")
+    plt.title("Frequency Response")
+    plt.ylabel("Magnitude (dB)")
+    plt.xlim(0, fs / 2)  # Set appropriate x-axis limits
+    plt.grid(True)
+
+    # Plot phase (degrees)
+    plt.subplot(2, 1, 2)
+    plt.semilogx(freq, np.unwrap(np.angle(H)) * 180 / np.pi, label="Phase (degrees)")
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("Phase (degrees)")
+    plt.xlim(0, fs / 2)  # Set appropriate x-axis limits
+    plt.yticks([-90, -60, -30, 0, 30, 60, 90])
+    plt.ylim([-90, 90])
+    plt.grid(True)
+
+    plt.legend()  # Add legend
+
+    # Save the figure if a file path is provided
+    if save_fig:
+        # Ensure file extension is included
+        if not save_fig.endswith(".png"):
+            save_fig += ".png"
+        plt.savefig(save_fig)
+
+    # Display the plot if requested
+    if show_fig:
+        plt.show()
+
+    # Close the figure to avoid memory leaks
+    plt.close()

@@ -13,8 +13,11 @@ Functions:
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
+import matplotlib.cm as cm
 
-def plot_ppg_signal(signal, fs=None, xlim=None, ylim=None, title=None, show_fig=True, file_path=None, figsize=(20, 8), color='blue'):
+
+def plot_ppg_signal(signal, fs=None, xlim=None, ylim=None, title=None, show_fig=True, file_path=None, figsize=(20, 8),
+                    color='blue'):
     """
     Plot PPG signal.
 
@@ -70,3 +73,108 @@ def plot_ppg_signal(signal, fs=None, xlim=None, ylim=None, title=None, show_fig=
     plt.close()
 
     return
+
+
+def plot_ppg_peaks_signal(signal, peaks, fs, xlim=None, show_fig=True, save_fig=None):
+    """
+    Plots the PPG signal with its corresponding peaks highlighted.
+
+    Args:
+        signal (np.ndarray): PPG signal (1D array).
+        peaks (list): List of peak indices in the signal.
+        fs (float): Sampling frequency of the signal.
+        xlim (tuple, optional): A tuple of (min, max) values for the x-axis limits. Defaults to None.
+        show_fig (bool, optional): Whether to display the plot on screen. Defaults to True.
+        save_fig (str, optional): File path to save the plot. Defaults to None.
+    """
+
+    plt.figure(figsize=(12, 8))  # Set figure size
+
+    # Calculate time axis
+    time = np.arange(len(signal)) / fs
+
+    # Plot signal and peaks
+    plt.plot(time, signal, label="PPG Signal")
+    plt.scatter(time[peaks], signal[peaks], label="PPG Peaks", color='red')
+
+    # Set labels and title
+    plt.xlabel("Time (seconds)")
+    plt.ylabel("PPG Amplitude")
+    plt.title("PPG Signal with Peaks")
+
+    # Add legend
+    plt.legend()
+
+    # Set x-axis limits if provided
+    if xlim:
+        plt.xlim(xlim[0], xlim[1])
+
+    # Save the figure if a file path is provided
+    if save_fig:
+        # Ensure directory exists before saving
+        save_dir = Path(save_fig).parent
+        if not save_dir.exists():
+            save_dir.mkdir(parents=True)
+        plt.savefig(save_fig)
+
+    # Display the plot if requested
+    if show_fig:
+        plt.show()
+
+    # Close the figure to avoid memory leaks
+    plt.close()
+
+
+def plot_ppg_peaks_labels_signal(signal, peaks, labels, fs, xlim=None, ylim=(-10, 10), show_fig=True, save_fig=None):
+    """
+    Plots the PPG signal with its corresponding peaks and labels.
+
+    Args:
+        signal (np.ndarray): PPG signal (1D array).
+        peaks (list): List of peak indices in the signal.
+        labels (list): List of labels corresponding to each peak.
+        fs (float): Sampling frequency of the signal.
+        xlim (tuple, optional): A tuple of (min, max) values for the x-axis limits. Defaults to None.
+        ylim (tuple, optional): A tuple of (min, max) values for the y-axis limits. Defaults to (-10, 10).
+        show_fig (bool, optional): Whether to display the plot on screen. Defaults to True.
+        save_fig (str, optional): File path to save the plot. Defaults to None.
+    """
+
+    plt.figure(figsize=(12, 8))  # Set figure size
+
+    # Calculate time axis
+    time = np.arange(len(signal)) / fs
+
+    # Plot signal and scatter peaks with distinct colors
+    plt.plot(time, signal, label="PPG Signal")
+    cmap = cm.get_cmap('tab10')  # Use colormap for multiple peak labels
+    unique_labels, counts = np.unique(labels, return_counts=True)
+    for i, label in enumerate(unique_labels):
+        peak_indices = peaks[labels == label]
+        plt.scatter(time[peak_indices], signal[peak_indices], label=label, c=cmap(i % len(cmap.colors)))
+
+    # Add labels, title, and legend
+    plt.xlabel("Time (seconds)")
+    plt.ylabel("PPG Amplitude")
+    plt.title("PPG Signal with Peaks and Labels")
+    plt.legend()
+
+    # Set axis limits if provided
+    if xlim:
+        plt.xlim(xlim[0], xlim[1])
+    plt.ylim(ylim[0], ylim[1])
+
+    # Save the figure if a file path is provided
+    if save_fig:
+        # Ensure directory exists before saving
+        save_dir = Path(save_fig).parent
+        if not save_dir.exists():
+            save_dir.mkdir(parents=True)
+        plt.savefig(save_fig)
+
+    # Display the plot if requested
+    if show_fig:
+        plt.show()
+
+    # Close the figure to avoid memory leaks
+    plt.close()
