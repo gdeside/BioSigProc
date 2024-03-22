@@ -234,3 +234,64 @@ def plot_frequency_response(b, a, fs, show_fig=True, save_fig=None):
 
     # Close the figure to avoid memory leaks
     plt.close()
+
+
+def plot_dft(signals, fft, fs, legend=None, show_fig=True, save_fig=None):
+    """
+    Plots the time-domain signals and their corresponding frequency spectra (DFT).
+
+    Args:
+        signals (np.ndarray): Array of time-domain signals (shape: (n_channels, n_samples)).
+        fft (np.ndarray): Array of frequency-domain signals (DFT) after FFT (shape: (n_channels, n_frequencies)).
+        fs (float): Sampling frequency of the signals.
+        legend (list, optional): List of labels for the frequency channels (length should match n_channels-1). Defaults to None.
+        show_fig (bool, optional): Whether to display the plot on screen. Defaults to True.
+        save_fig (str, optional): File path to save the plot. Defaults to None.
+    """
+
+    plt.figure(figsize=(12, 6))  # Set figure size
+
+    # Calculate time axis for signals
+    t = np.arange(signals.shape[1]) / fs
+
+    # Plot time-domain signals
+    ax1 = plt.subplot(211)
+    for i, color in enumerate(plt.cm.tab10.colors):
+        if i == 0:
+            label = "Reference"  # Assuming the first channel is reference
+        else:
+            label = legend[i - 1] if legend else f"Channel {i}"
+        ax1.plot(t, signals[i], label=label, color=color)
+    ax1.set_xlabel("Time (seconds)")
+    ax1.set_ylabel("Amplitude")
+    ax1.legend()
+
+    # Calculate frequency axis for DFT
+    f = np.linspace(0, fs / 2, int(fft.shape[1] / 2) + 1)
+
+    # Plot frequency-domain signals (half spectrum due to real signals)
+    ax2 = plt.subplot(212)
+    for i, color, label in zip(range(1, len(legend) + 1), plt.cm.tab10.colors, legend):
+        ax2.plot(f, np.abs(fft[i, :len(f)]), label=label, color=color)  # Plot only positive frequencies
+    ax2.set_xlabel("Frequency (Hz)")
+    ax2.set_ylabel("Magnitude (absolute)")
+    ax2.set_xlim(0, fs / 2)  # Set x-axis limit to half sampling frequency
+    ax2.legend()
+
+    # Improve readability (optional)
+    plt.tight_layout()
+
+    # Save the figure if a file path is provided
+    if save_fig:
+        # Ensure directory exists before saving
+        save_dir = Path(save_fig).parent
+        if not save_dir.exists():
+            save_dir.mkdir(parents=True)
+        plt.savefig(save_fig)
+
+    # Display the plot if requested
+    if show_fig:
+        plt.show()
+
+    # Close the figure to avoid memory leaks
+    plt.close()

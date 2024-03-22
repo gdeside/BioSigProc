@@ -16,6 +16,7 @@ Functions:
 
 import numpy as np
 import pywt
+import scipy.signal as signal
 
 
 def add_salt_and_pepper_noise(signal, salt_prob=0.001, pepper_prob=0.001):
@@ -234,3 +235,29 @@ def reconstruct_coefficients_independently(coeffs, wavelet="db4", signal_size=10
         reconstructed_signals[level_index, :] = reconstructed_signal
 
     return reconstructed_signals
+
+
+def cross_spectrum(x, y, fs, window="hamming", nperseg=None, noverlap=None, nfft=None):
+    """
+  Calculates the cross-spectrum of two signals using Welch's method.
+
+  Args:
+      x (np.ndarray): First signal (1D array).
+      y (np.ndarray): Second signal (1D array).
+      fs (float): Sampling frequency of the signals.
+      window (str, optional): Window function to use for Welch's method ("hamming", "hanning", etc.). Defaults to "hamming".
+      nperseg (int, optional): Length of each segment for Welch's method.
+                             Defaults to None (calculated based on signal length).
+      noverlap (float, optional): Overlap percentage for Welch's method (0 to 1). Defaults to None (calculated based on nperseg).
+      nfft (int, optional): Number of points for the FFT in Welch's method.
+                             Defaults to None (calculated based on nperseg).
+
+  Returns:
+      tuple: Tuple containing the frequencies (f) and cross-spectrum (Pxy).
+  """
+
+    # Calculate Welch's power spectral density (PSD)
+    f, Pxx, Pyxxy = welch(x, y, fs=fs, window=window, nperseg=nperseg, noverlap=noverlap, nfft=nfft)
+
+    # Return frequencies and cross-spectrum
+    return f, Pyxxy
