@@ -17,6 +17,7 @@ Functions:
 import numpy as np
 import pywt
 import scipy.signal as signal
+import numpy.linalg as la
 
 
 def add_salt_and_pepper_noise(signal, salt_prob=0.001, pepper_prob=0.001):
@@ -261,3 +262,37 @@ def cross_spectrum(x, y, fs, window="hamming", nperseg=None, noverlap=None, nfft
 
     # Return frequencies and cross-spectrum
     return f, Pyxxy
+
+
+def remove_noisy_acc(signal, acceleration, threshold=1.1):
+    """
+    Removes segments of the signal where the acceleration magnitude exceeds a threshold.
+
+    Args:
+        signal (np.ndarray): The signal to be denoised (2D array).
+        acceleration (np.ndarray): The acceleration data (1D or 3D array).
+        threshold (float, optional): Threshold for acceleration magnitude (default: 1.1).
+
+    Returns:
+        np.ndarray: The denoised signal.
+
+    Raises:
+        ValueError: If the acceleration data has an unexpected shape.
+    """
+
+    # Check if acceleration has expected dimensions
+    if len(acceleration.shape) == 1:
+        total_acc = acceleration
+    elif acceleration.shape[1] == 3:
+        # Calculate magnitude using Euclidean norm
+        total_acc = la.norm(acceleration[:, 0:3] / 64, axis=1)
+    else:
+        raise ValueError("Acceleration data must be 1D or have shape (n_samples, 3) for 3D acceleration.")
+
+    # Find noisy segments based on threshold
+    noisy_segments_indices = np.where(total_acc > threshold)[0]
+
+    # Set noisy segments of the signal to zero
+    signal[noisy_segments_indices] = 0
+
+    return signal
